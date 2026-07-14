@@ -1,0 +1,15 @@
+{
+  "$schema": "https://schemas.reqnroll.net/reqnroll-config-latest.json",
+
+  // Living documentation. Reqnroll emits Cucumber Messages as the run proceeds; the HTML formatter turns
+  // them into a self-contained report of every scenario and its outcome, readable by someone who will
+  // never open the code. (This replaces SpecFlow+ LivingDoc, which was retired along with SpecFlow.)
+  "formatters": {
+    "html": {
+      "outputFilePath": "LivingDoc/living-doc.html"
+    },
+    "message": {
+      "outputFilePath": "LivingDoc/messages.ndjson"
+    }
+  }
+}

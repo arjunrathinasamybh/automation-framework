@@ -1,0 +1,10 @@
+<Solution>
+  <Folder Name="/src/">
+    <Project Path="src/O365.Automation.Core/O365.Automation.Core.csproj" />
+    <Project Path="src/O365.Automation.Pages/O365.Automation.Pages.csproj" />
+  </Folder>
+  <Folder Name="/tests/">
+    <Project Path="tests/O365.Automation.Specs/O365.Automation.Specs.csproj" />
+    <Project Path="tests/O365.Automation.UnitTests/O365.Automation.UnitTests.csproj" />
+  </Folder>
+</Solution>

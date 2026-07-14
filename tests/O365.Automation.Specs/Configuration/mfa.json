@@ -1,0 +1,19 @@
+{
+  "Mfa": {
+    // Automatic  - use the TOTP secret if one is configured, otherwise fall back to Interactive.
+    //              Unattended in CI (where the secret is injected), hands-on locally (where it usually
+    //              is not), with no configuration change between them. This is the default.
+    //
+    // Totp       - always generate the code from Credentials:TotpSecret. The only mode that can run
+    //              headless or in CI. Fails if no secret is configured.
+    //
+    // Interactive- pause and hand the live browser to you. Complete the challenge however the tenant asks
+    //              (Authenticator code, push approval with number matching, SMS, hardware key) and the run
+    //              resumes automatically. Needs no TOTP secret and supports every authenticator type,
+    //              because a human answers it in the real page. Requires a visible browser.
+    "Mode": "Automatic",
+
+    // How long to wait for you to finish. Has to cover finding a phone and unlocking it.
+    "InteractiveTimeoutSeconds": 300
+  }
+}

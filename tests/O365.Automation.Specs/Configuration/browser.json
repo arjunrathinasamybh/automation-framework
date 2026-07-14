@@ -1,0 +1,30 @@
+{
+  // The .NET JSON configuration provider tolerates comments, so the options are documented in place.
+  "Browser": {
+    // Chrome | Edge | Firefox
+    "Type": "Edge",
+
+    // Normal    - a standard session. On a domain- or Entra-joined machine this offers the Windows
+    //             identity via SSO ("Pick an account"), which the framework always declines.
+    // InPrivate - Chrome incognito / Edge InPrivate / Firefox private browsing. No cached identity,
+    //             so sign-in is always deterministic. This is why it is the default.
+    "Mode": "InPrivate",
+
+    "Headless": false,
+    "StartMaximized": true,
+
+    // Fixed viewport. Leave null to honour StartMaximized. Below roughly 1024px wide the Microsoft 365
+    // navigation rail collapses, so do not set these smaller than that.
+    "WindowWidth": null,
+    "WindowHeight": null,
+
+    // Persistent browser profile, used only when Mode is "Normal" — lets a signed-in session survive
+    // across runs. Ignored for InPrivate, which discards profile state by design.
+    "UserDataDirectory": null,
+
+    "DownloadDirectory": null,
+
+    // Escape hatch for browser switches not modelled above, e.g. [ "--disable-gpu" ].
+    "AdditionalArguments": []
+  }
+}

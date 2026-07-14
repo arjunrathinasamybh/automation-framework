@@ -1,0 +1,17 @@
+{
+  "Application": {
+    "BaseUrl": "https://m365.cloud.microsoft/",
+
+    "SignInUrl": "https://m365.cloud.microsoft/?auth=2",
+
+    "LoginHost": "login.microsoftonline.com",
+
+    "AuthenticatedUrlMarkers": [
+      "m365.cloud.microsoft",
+      "office.com",
+      "microsoft365.com"
+    ],
+
+    "ArtifactsDirectory": "TestArtifacts"
+  }
+}

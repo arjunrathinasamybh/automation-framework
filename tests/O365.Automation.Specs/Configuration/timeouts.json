@@ -1,0 +1,16 @@
+{
+  "Timeouts": {
+    // Explicit wait for an element to appear or become interactable.
+    "ElementSeconds": 30,
+
+    // Full page load / navigation.
+    "PageLoadSeconds": 60,
+
+    // Budget for the whole sign-in sequence (email -> password -> MFA -> "Stay signed in?").
+    // Generous on purpose: tenant redirects and MFA screens are slow.
+    "LoginSeconds": 120,
+
+    // How often explicit waits re-check their condition.
+    "PollingMilliseconds": 500
+  }
+}

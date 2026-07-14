@@ -1,0 +1,37 @@
+## Build output
+bin/
+obj/
+[Dd]ebug/
+[Rr]elease/
+artifacts/
+
+## Test evidence (screenshots, DOM dumps) — regenerated on every run
+TestArtifacts/
+TestResults/
+*.trx
+
+## Living documentation — regenerated on every run from the feature files
+LivingDoc/
+
+## Reqnroll-generated code-behind for the .feature files
+*.feature.cs
+
+## Machine-local configuration overrides. Never shared.
+**/Configuration/local.json
+
+## Browser profiles created by Normal-mode runs
+BrowserProfiles/
+
+## IDE
+.vs/
+.idea/
+*.user
+*.suo
+
+## NEVER commit credentials.
+## credentials.json is the real, filled-in file and is ignored here. credentials.template.json IS
+## committed and must only ever contain empty values — that is the whole reason the two are separate.
+## Safer still: keep the password and TOTP secret in user-secrets or the CI secret store, not in any file.
+**/Configuration/credentials.json
+secrets.json
+*.secrets.json
