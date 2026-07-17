@@ -324,20 +324,44 @@ sequence tells you exactly how far the flow got.
 
 ## CI
 
-Run headless, inject secrets from the pipeline store, and matrix on the browser:
+Two workflows, split by what they need:
+
+| Workflow | Runs on | Needs | Status |
+| --- | --- | --- | --- |
+| [`ci.yml`](../.github/workflows/ci.yml) | every push and PR | nothing | working |
+| [`e2e.yml`](../.github/workflows/e2e.yml) | manual dispatch | a test account **with a TOTP secret** | **not yet working** |
+
+`ci.yml` builds and runs the unit tests. No browser, no account, well under a second — which is why it can
+guard every push. It is green on a fresh clone.
+
+`e2e.yml` signs in to a real tenant, and **cannot work until the account has a verification-code method
+enrolled**. That is arithmetic rather than policy: with no TOTP secret, `Mfa:Mode` resolves to
+`Interactive`, which pauses and hands a human the browser. There is no human on a runner, so the handler
+fails fast instead of hanging. Enrol the secret, add these two repository secrets, and it starts working:
+
+```text
+CREDENTIALS_PASSWORD       the account's password
+CREDENTIALS_TOTP_SECRET    the Base32 secret from the authenticator enrolment screen
+```
+
+The nightly schedule in that file is commented out on purpose: a scheduled job that fails every night
+trains people to ignore it. Run it by hand, and uncomment the schedule once it has been green.
+
+Everything a pipeline needs to override is an environment variable, because they outrank every config
+file — the committed files describe a developer's machine, and these describe a runner:
 
 ```yaml
 env:
   Browser__Headless: "true"
-  Browser__Type: ${{ matrix.browser }}          # Chrome | Edge | Firefox
-  Browser__Mode: "InPrivate"
-  Credentials__Password: ${{ secrets.O365_PASSWORD }}
-  Credentials__TotpSecret: ${{ secrets.O365_TOTP_SECRET }}
-
-steps:
-  - run: dotnet test --filter "TestCategory!=e2e"     # no account needed
-  - run: dotnet test --filter "TestCategory=e2e"      # needs the secrets above
+  Browser__Type: ${{ matrix.browser }}          # Chrome | Edge | Firefox — the scenarios never name one
+  Mfa__Mode: "Totp"                             # the only mode that can run unattended
+  Evidence__Mode: "OnFailure"
+  Credentials__Password: ${{ secrets.CREDENTIALS_PASSWORD }}
+  Credentials__TotpSecret: ${{ secrets.CREDENTIALS_TOTP_SECRET }}
 ```
+
+A browser matrix is a `strategy` block away, and costs no change to any scenario — that is the point of
+keeping the browser out of the Gherkin.
 
 Publish `TestArtifacts/` and `LivingDoc/living-doc.html` as build artifacts — the first for debugging red
 builds, the second as stakeholder-facing documentation of what was verified.

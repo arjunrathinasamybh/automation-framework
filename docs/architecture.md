@@ -339,26 +339,34 @@ test's own exception is what matters.
 
 Stated plainly, because a guide that overstates confidence is worse than none.
 
-- **Session reuse has never completed a live run.** `Session:Mode=Reuse` signs in once per run and gives
-  each scenario a copy of the resulting profile. The copying is unit-tested; the end-to-end path is not.
-  Three attempts to verify it against the tenant were lost at the MFA prompt — the run reached "approve
-  number 18", waited five minutes, and failed — so what remains unknown is the one thing only a live run
-  can answer: whether Entra accepts a *copied* session for silent SSO, or refuses it the way it refused
-  the corrupted shared profile that this design replaced. If it refuses, the symptom is
-  `"Session information is not sufficient for single-sign-on"` on every scenario, and the fallback is one
-  value: `Session__Mode=Fresh`.
-- **Every run needs a human.** With no TOTP secret configured, MFA is interactive by definition, so an
-  unattended run cannot sign in at all — and, in `Fresh` mode, needs an approval *per scenario*. This is
-  the single largest constraint on the suite today: it is why the three runs above were lost, and why
-  there is no CI. A verification-code method enrolled in Entra, with its Base32 secret in user-secrets,
-  removes it entirely.
-
-- **The sidebar's item locators are unverified.** Sign-in and the admin center path have now run
-  end-to-end against a live tenant, and the rail's *container* renders — but no run has yet selected an
-  item from it, so the `Item(...)` candidates in
-  [`SidebarLocators`](../src/Automation.Pages/M365/SidebarLocators.cs) remain an educated guess:
+- **Every run needs a human, so there is no end-to-end CI.** With no TOTP secret configured, MFA is
+  interactive *by definition*: the run pauses and hands somebody the browser. There is nobody on a build
+  agent, so [`e2e.yml`](../.github/workflows/e2e.yml) cannot pass — and in `Fresh` mode a local run needs
+  an approval *per scenario*. This is the single largest constraint on the suite: four separate runs have
+  been lost to unanswered MFA prompts, and it is what blocks verifying everything else below. A
+  verification-code method enrolled for the account, with its Base32 secret supplied as
+  `Credentials__TotpSecret`, removes it entirely and is the highest-value thing anyone can do to this
+  repository.
+- **Session reuse has never completed a live run**, and is therefore off. `Session:Mode=Reuse` signs in
+  once and gives each scenario a copy of the resulting profile; the copying is unit-tested, the end-to-end
+  path is not. One question needs a real tenant: whether Entra accepts a *copied* session for silent SSO,
+  or refuses it as it refused the corrupted shared profile this design replaced. If it refuses, the
+  symptom is `"Session information is not sufficient for single-sign-on"` on every scenario at once —
+  which is exactly why the default is the proven mode rather than the promising one.
+- **One unexplained authentication failure.** A scenario once failed with Microsoft's "we're having
+  trouble verifying your account" on a clean InPrivate browser with no profile and no cookies. The
+  poisoned-profile explanation does not cover that case. The likeliest remaining candidate is Entra
+  throttling the account after many rapid sign-ins, which the sequential-execution note below exists to
+  avoid — but it has not been proven, and an unexplained authentication failure is indistinguishable from
+  a real defect at 3am.
+- **Only one business scenario is verified end-to-end.** Active users, in the admin center. Sign-in and
+  the admin navigation are proven; nothing else about the product is. This is a framework with a worked
+  example, not a test suite, and the honest way to grow it is one verified scenario at a time.
+- **The sidebar's item locators are unverified.** The rail's *container* renders, but no run has ever
+  selected an item from it, so the `Item(...)` candidates in
+  [`SidebarLocators`](../src/Automation.Pages/M365/SidebarLocators.cs) remain an educated guess —
   resilient by construction (accessibility attributes, fallback chains), but a guess. Worth knowing that
-  the equivalent guess for the admin center was *wrong* on first contact — that navigation labels its
+  the equivalent guess for the admin center was *wrong* on first contact: that navigation labels its
   entries with a `name` attribute and `role="menuitem"`, not the `aria-label` and `role="treeitem"` that
   seemed the obvious bet. Expect the same of the rail until a run proves otherwise.
 - **Scenarios run sequentially.** Entra ID throttles rapid repeated sign-ins from one account; parallel

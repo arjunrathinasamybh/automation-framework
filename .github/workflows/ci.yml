@@ -1,0 +1,42 @@
+# Runs on every push and pull request. Deliberately contains no browser and no credentials: this is the
+# part that must be fast, deterministic, and green on a fresh clone with no secrets configured.
+#
+# The scenarios that need an account live in e2e.yml, which is manual until the test account has a TOTP
+# secret enrolled — without one, MFA is interactive by definition and no unattended run can sign in.
+name: CI
+
+on:
+  push:
+    branches: ["**"]
+  pull_request:
+  workflow_dispatch:
+
+jobs:
+  build-and-unit-test:
+    name: Build and unit test
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: "10.0.x"
+
+      - name: Build
+        # Warnings are not errors here yet; make them so once the tree is clean and this becomes the gate
+        # that keeps it that way.
+        run: dotnet build --configuration Release
+
+      - name: Unit test
+        # Framework internals only — no browser, no network, no account. Runs in well under a second, so
+        # there is no reason for this job not to guard every push.
+        run: dotnet test tests/Automation.UnitTests --configuration Release --no-build --logger "trx;LogFileName=unit.trx"
+
+      - name: Publish test results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: unit-test-results
+          path: "**/TestResults/*.trx"
+          if-no-files-found: warn

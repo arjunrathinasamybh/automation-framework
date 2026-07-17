@@ -19,7 +19,15 @@
     //
     //         The trade is server-side state: scenarios share one account, so whatever that account
     //         accumulates is visible to all of them. The browser state is not shared.
-    "Mode": "Reuse",
+    //
+    // Fresh until Reuse has completed a live run. The copying is unit-tested, but one question can only be
+    // answered against a real tenant: whether the identity provider accepts a *copied* session for silent
+    // SSO, or refuses it the way it refused the corrupted shared profile this design replaced. Defaulting
+    // to the unproven mode would mean a failure there takes out every scenario at once, and reads as
+    // "we're having trouble verifying your account" rather than as a session bug. Switch it on for a run
+    // -- Session__Mode=Reuse dotnet test --filter "TestCategory=admin|TestCategory=navigation" -- and if
+    // the second scenario signs in without prompting, make it the default here.
+    "Mode": "Fresh",
 
     // Where the master profile lives, relative to the test output directory. Per-scenario copies go in a
     // sibling "<ProfileDirectory>.scenarios" and are deleted as each scenario ends. The master holds a
