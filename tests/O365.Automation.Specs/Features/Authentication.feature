@@ -1,4 +1,4 @@
-@authentication
+@authentication @fresh-session
 Feature: Signing in to Microsoft 365
 
   As an automation engineer
@@ -8,6 +8,10 @@ Feature: Signing in to Microsoft 365
   # The browser and privacy mode are not mentioned anywhere in these scenarios. They are environment,
   # not behaviour: they come from Configuration/browser.json, or from Browser__Type / Browser__Mode in CI.
   # The same specification therefore describes the behaviour on every browser.
+
+  # @fresh-session, on the feature: these are the scenarios *about* signing in, so each one needs a
+  # browser that has not. Under Session:Mode=Reuse the rest of the suite shares one signed-in profile;
+  # sharing it here would mean asserting that a signed-in session is asked to sign in.
 
   @smoke
   Scenario: An unauthenticated visitor is asked to sign in

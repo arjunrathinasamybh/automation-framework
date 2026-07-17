@@ -3,12 +3,18 @@ using O365.Automation.Core.Configuration;
 namespace O365.Automation.Core.Authentication;
 
 /// <summary>
-/// Handles exactly one screen of the Entra ID sign-in sequence.
+/// Handles exactly one screen of an identity provider's sign-in sequence.
 /// <para>
-/// The sequence is not fixed: depending on tenant policy, account type and session state a run may see
-/// an account tile, a "sign in another way" chooser, an MFA prompt, a "Stay signed in?" prompt, or none
-/// of them. Modelling each screen as an independently-detectable handler — rather than scripting a fixed
-/// order — means an unexpected screen is a new class, not a rewrite of the flow.
+/// The sequence is not fixed: depending on policy, account type and session state a run may see an account
+/// tile, a "sign in another way" chooser, an MFA prompt, a "remember me" prompt, or none of them.
+/// Modelling each screen as an independently-detectable handler — rather than scripting a fixed order —
+/// means an unexpected screen is a new class, not a rewrite of the flow.
+/// </para>
+/// <para>
+/// This contract, and the engine that drives it, name no identity provider and contain no markup. A
+/// provider is a *set* of these handlers plus its own registration extension: Entra ID ships as one in
+/// <c>O365.Automation.Pages</c>, and swapping in Ping, Okta or an in-house login means writing another set
+/// and registering it instead. Nothing in this project changes.
 /// </para>
 /// </summary>
 public interface ILoginStepHandler

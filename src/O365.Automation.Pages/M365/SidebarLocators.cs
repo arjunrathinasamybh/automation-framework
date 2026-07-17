@@ -1,4 +1,5 @@
 using OpenQA.Selenium;
+using O365.Automation.Pages.Internal;
 
 namespace O365.Automation.Pages.M365;
 
@@ -34,7 +35,7 @@ internal static class SidebarLocators
     /// </summary>
     internal static IReadOnlyList<By> Item(string displayName)
     {
-        var escaped = Escape(displayName);
+        var escaped = XPathLiteral.Of(displayName);
 
         return
         [
@@ -45,20 +46,5 @@ internal static class SidebarLocators
             By.XPath($"//*[@role='navigation']//*[@aria-label][contains(@aria-label, {escaped})]"),
             By.XPath($"//nav//*[contains(normalize-space(.), {escaped})]")
         ];
-    }
-
-    /// <summary>
-    /// Wraps a value as an XPath string literal. XPath 1.0 has no escape character, so a value containing
-    /// an apostrophe (as in a localised label) has to be assembled with concat() instead of quoted.
-    /// </summary>
-    private static string Escape(string value)
-    {
-        if (!value.Contains('\''))
-        {
-            return $"'{value}'";
-        }
-
-        var parts = value.Split('\'').Select(part => $"'{part}'");
-        return $"concat({string.Join(", \"'\", ", parts)})";
     }
 }

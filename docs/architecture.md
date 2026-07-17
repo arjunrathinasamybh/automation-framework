@@ -266,10 +266,12 @@ resolved by `FirstDisplayedOrDefault`, which takes the first that matches.
 They target the **accessibility contract** (`role`, `aria-label`, `title`) rather than generated CSS class
 names, because that is what screen readers depend on and is therefore the most stable thing on the page.
 
-When a Microsoft UI change breaks the suite, exactly two files should need editing:
+When a Microsoft UI change breaks the suite, only the locator files should need editing — one per surface:
 
-- [`MicrosoftLoginLocators`](../src/O365.Automation.Pages/Login/MicrosoftLoginLocators.cs)
-- [`SidebarLocators`](../src/O365.Automation.Pages/M365/SidebarLocators.cs)
+- [`MicrosoftLoginLocators`](../src/O365.Automation.Pages/Login/MicrosoftLoginLocators.cs) — Entra ID sign-in
+- [`SidebarLocators`](../src/O365.Automation.Pages/M365/SidebarLocators.cs) — the M365 navigation rail
+- [`AdminCenterLocators`](../src/O365.Automation.Pages/Admin/AdminCenterLocators.cs) — the admin center navigation
+- [`ActiveUsersLocators`](../src/O365.Automation.Pages/Admin/ActiveUsersLocators.cs) — the admin center's Active users list
 
 ---
 
@@ -337,10 +339,14 @@ test's own exception is what matters.
 
 Stated plainly, because a guide that overstates confidence is worse than none.
 
-- **The sidebar locators are unverified.** Nothing has yet run against an authenticated tenant, so
-  [`SidebarLocators`](../src/O365.Automation.Pages/M365/SidebarLocators.cs) is an educated guess — resilient
-  by construction (accessibility attributes, fallback chains), but a guess. The sign-in path *is* verified
-  as far as the credential screen.
+- **The sidebar's item locators are unverified.** Sign-in and the admin center path have now run
+  end-to-end against a live tenant, and the rail's *container* renders — but no run has yet selected an
+  item from it, so the `Item(...)` candidates in
+  [`SidebarLocators`](../src/O365.Automation.Pages/M365/SidebarLocators.cs) remain an educated guess:
+  resilient by construction (accessibility attributes, fallback chains), but a guess. Worth knowing that
+  the equivalent guess for the admin center was *wrong* on first contact — that navigation labels its
+  entries with a `name` attribute and `role="menuitem"`, not the `aria-label` and `role="treeitem"` that
+  seemed the obvious bet. Expect the same of the rail until a run proves otherwise.
 - **Scenarios run sequentially.** Entra ID throttles rapid repeated sign-ins from one account; parallel
   scenarios against a single test account produce authentication failures that look like product bugs.
   Raise parallelism only alongside a pool of distinct test accounts.

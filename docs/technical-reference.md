@@ -307,8 +307,9 @@ Every exception the framework raises deliberately, and what it means.
 | `NotSupportedException`: *"No IBrowserDriverProvider is registered"* | Unknown `Browser:Type`. | Register a provider, or fix the value. |
 | `WebDriverTimeoutException`: *"could not find the …"* wording from `Resolve` | **Microsoft changed their markup.** | Update the candidate locators — see below. |
 
-The last one is the important signal: it names the step and lists every locator tried. **Only two files
-should ever need editing** — `MicrosoftLoginLocators` and `SidebarLocators`.
+The last one is the important signal: it names the step and lists every locator tried. **Only the locator
+files should ever need editing** — `MicrosoftLoginLocators`, `SidebarLocators`, `AdminCenterLocators` and
+`ActiveUsersLocators`.
 
 ---
 

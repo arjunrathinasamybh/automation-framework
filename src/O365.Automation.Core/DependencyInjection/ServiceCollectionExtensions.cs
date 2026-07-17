@@ -7,6 +7,7 @@ using O365.Automation.Core.Configuration;
 using O365.Automation.Core.Diagnostics;
 using O365.Automation.Core.Drivers;
 using O365.Automation.Core.Interactions;
+using O365.Automation.Core.Session;
 using O365.Automation.Core.Waits;
 
 namespace O365.Automation.Core.DependencyInjection;
@@ -28,6 +29,7 @@ public static class ServiceCollectionExtensions
         services.Configure<CredentialSettings>(configuration.GetSection(CredentialSettings.SectionName));
         services.Configure<ApplicationSettings>(configuration.GetSection(ApplicationSettings.SectionName));
         services.Configure<MfaSettings>(configuration.GetSection(MfaSettings.SectionName));
+        services.Configure<SessionSettings>(configuration.GetSection(SessionSettings.SectionName));
 
         // One provider per browser. The factory picks between them; nothing else needs to know they exist.
         services.AddSingleton<IBrowserDriverProvider, ChromeDriverProvider>();
@@ -46,6 +48,10 @@ public static class ServiceCollectionExtensions
             session.MarkDriverLaunched();
             return driver;
         });
+
+        // Stateless — it derives the profile path from configuration and owns nothing — so the lifetime
+        // carries no meaning here beyond avoiding pointless allocation.
+        services.AddSingleton<SessionProfile>();
 
         services.AddScoped<IWaitService, WaitService>();
         services.AddScoped<IElementInteractor, ElementInteractor>();

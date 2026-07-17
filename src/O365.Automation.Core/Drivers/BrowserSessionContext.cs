@@ -36,6 +36,25 @@ public sealed class BrowserSessionContext
         return this;
     }
 
+    /// <summary>
+    /// Launches this scope's browser against a persistent profile directory — the mechanism behind
+    /// reusing one signed-in session across scenarios.
+    /// <para>
+    /// This forces a normal session, overriding InPrivate if it was configured. The two are a
+    /// contradiction rather than a combination: a private window discards profile state by design, which
+    /// is exactly the state being reused. Resolving it here, loudly, beats honouring both and leaving the
+    /// caller to wonder why their profile is always empty.
+    /// </para>
+    /// </summary>
+    public BrowserSessionContext UseProfile(string directory)
+    {
+        ArgumentException.ThrowIfNullOrWhiteSpace(directory);
+
+        Settings.UserDataDirectory = directory;
+        Settings.Mode = BrowsingMode.Normal;
+        return this;
+    }
+
     // Defensive copy: BrowserSettings comes from IOptions and is a shared singleton instance.
     // Mutating it directly would leak one test's browser choice into every subsequent test.
     private static BrowserSettings Clone(BrowserSettings source) => new()

@@ -30,10 +30,17 @@ public static class ScenarioDependencies
                 .AddSimpleConsole(options => options.SingleLine = true)
                 .SetMinimumLevel(Microsoft.Extensions.Logging.LogLevel.Debug))
             .AddAutomationCore(configuration)
-            .AddO365Pages();
+
+            // The identity provider and the application under test are registered separately because they
+            // are independent choices. Federating this suite to Ping or Okta instead would replace the
+            // line below with that provider's extension — and nothing else here, in the core, or in any
+            // feature file.
+            .AddEntraIdAuthentication()
+            .AddO365Pages(configuration);
 
         // Shared between the steps of a single scenario.
         services.AddScoped<ScenarioState>();
+        services.AddScoped<TestAccount>();
 
         // The plugin discovers and registers the step-definition and hook classes itself; they are
         // resolved from the scenario's scope, so they can take IWebDriver and page objects as constructor

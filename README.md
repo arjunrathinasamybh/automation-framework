@@ -80,6 +80,14 @@ dotnet test --filter "TestCategory=e2e"
 
 Without credentials the `@e2e` scenarios **skip** rather than fail, so a fresh clone stays green.
 
+The admin center scenarios are additionally tagged `@admin`, because they need an account holding an
+administrative role — without one Microsoft refuses the portal outright, which is a fact about the account
+rather than a defect. On a tenant whose test account is unprivileged, exclude them:
+
+```bash
+dotnet test --filter "TestCategory=e2e&TestCategory!=admin"
+```
+
 ## Configuration
 
 Settings live in `tests/O365.Automation.Specs/Configuration/`, one file per concern — because they have
@@ -241,8 +249,8 @@ Microsoft reskins these pages without notice, so every element is an ordered lis
 a stable id first, then attribute and text fallbacks — resolved by `IWaitService.FirstDisplayedOrDefault`.
 They target the accessibility contract (`role`, `aria-label`, `title`) rather than generated CSS classes.
 
-When a Microsoft UI change breaks the flow, exactly two files should ever need editing:
-`MicrosoftLoginLocators` and `SidebarLocators`.
+When a Microsoft UI change breaks the flow, only the locator files should ever need editing — one per
+surface: `MicrosoftLoginLocators`, `SidebarLocators`, `AdminCenterLocators` and `ActiveUsersLocators`.
 
 ## Failure diagnostics
 

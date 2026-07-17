@@ -265,10 +265,12 @@ markup — update the candidate locators in MicrosoftLoginLocators.
 Tried: By.Id: i0118 | By.CssSelector: input[name='passwd'] | By.CssSelector: input[type='password']
 ```
 
-**Only two files should ever need editing:**
+**Only the locator files should ever need editing — one per surface:**
 
 - `src/O365.Automation.Pages/Login/MicrosoftLoginLocators.cs`
 - `src/O365.Automation.Pages/M365/SidebarLocators.cs`
+- `src/O365.Automation.Pages/Admin/AdminCenterLocators.cs`
+- `src/O365.Automation.Pages/Admin/ActiveUsersLocators.cs`
 
 Open the DOM dump in `TestArtifacts/`, find the new markup, and **add** a locator to the front of the list —
 don't replace the old ones unless you are certain they're dead. Locators are ordered lists precisely so

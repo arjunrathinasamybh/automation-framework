@@ -25,6 +25,7 @@ public sealed class AuthenticationSteps
     private readonly M365HomePage _homePage;
     private readonly ApplicationSettings _application;
     private readonly CredentialSettings _credentials;
+    private readonly TestAccount _account;
     private readonly ScenarioState _state;
 
     public AuthenticationSteps(
@@ -34,6 +35,7 @@ public sealed class AuthenticationSteps
         M365HomePage homePage,
         IOptions<ApplicationSettings> application,
         IOptions<CredentialSettings> credentials,
+        TestAccount account,
         ScenarioState state)
     {
         _driver = driver;
@@ -42,6 +44,7 @@ public sealed class AuthenticationSteps
         _homePage = homePage;
         _application = application.Value;
         _credentials = credentials.Value;
+        _account = account;
         _state = state;
     }
 
@@ -53,12 +56,12 @@ public sealed class AuthenticationSteps
     }
 
     [Given("I have valid Microsoft 365 credentials")]
-    public void GivenIHaveValidCredentials() => RequireConfiguredAccount();
+    public void GivenIHaveValidCredentials() => _account.RequireConfigured();
 
     [Given("I have an incorrect password")]
     public void GivenIHaveAnIncorrectPassword()
     {
-        RequireConfiguredAccount();
+        _account.RequireConfigured();
         _state.WrongPassword = true;
     }
 
@@ -73,7 +76,7 @@ public sealed class AuthenticationSteps
     [Given("I am signed in to Microsoft 365")]
     public void WhenISignIn()
     {
-        RequireConfiguredAccount();
+        _account.RequireConfigured();
 
         _authentication.SignIn();
         _homePage.WaitUntilLoaded();
@@ -137,21 +140,5 @@ public sealed class AuthenticationSteps
         // timed out". That distinction is the whole reason the error handler outranks the other steps.
         Assert.That(_state.SignInFailure!.Message, Does.Contain("rejected by Microsoft"));
         TestContext.Out.WriteLine(_state.SignInFailure.Message);
-    }
-
-    /// <summary>
-    /// Skips the scenario — rather than failing it — when no test account is configured. A fresh clone has
-    /// no secrets by design, and a red suite there would be noise, not signal.
-    /// </summary>
-    private void RequireConfiguredAccount()
-    {
-        if (string.IsNullOrWhiteSpace(_credentials.Username) || string.IsNullOrWhiteSpace(_credentials.Password))
-        {
-            Assert.Ignore(
-                "No test account is configured, so this scenario cannot run. Set Credentials:Username in " +
-                "Configuration/credentials.json, then supply the secrets out-of-band:\n" +
-                "  dotnet user-secrets set \"Credentials:Password\"   \"<password>\"\n" +
-                "  dotnet user-secrets set \"Credentials:TotpSecret\" \"<base32-secret>\"");
-        }
     }
 }

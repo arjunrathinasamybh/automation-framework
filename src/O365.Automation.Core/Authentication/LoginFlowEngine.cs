@@ -57,19 +57,24 @@ public sealed class LoginFlowEngine : IAuthenticationService
         {
             var url = _driver.Url;
 
-            if (url.Contains(_application.LoginHost, StringComparison.OrdinalIgnoreCase))
+            // Guarded rather than tested directly: an unset LoginHost is the empty string, every URL
+            // "contains" it, and the flow would decide it was forever on the login page and never finish.
+            if (!string.IsNullOrWhiteSpace(_application.LoginHost)
+                && url.Contains(_application.LoginHost, StringComparison.OrdinalIgnoreCase))
             {
                 return false;
             }
 
             return _application.AuthenticatedUrlMarkers
-                .Any(marker => url.Contains(marker, StringComparison.OrdinalIgnoreCase));
+                .Any(marker => !string.IsNullOrWhiteSpace(marker)
+                    && url.Contains(marker, StringComparison.OrdinalIgnoreCase));
         }
     }
 
-    public void SignIn(CredentialSettings? credentials = null)
+    public void SignIn(CredentialSettings? credentials = null, string? startUrl = null)
     {
         var context = new LoginContext(credentials ?? _credentials);
+        var entryPoint = string.IsNullOrWhiteSpace(startUrl) ? _application.SignInUrl : startUrl;
 
         if (string.IsNullOrWhiteSpace(context.Credentials.Username))
         {
@@ -78,10 +83,26 @@ public sealed class LoginFlowEngine : IAuthenticationService
                 "password via user-secrets or the Credentials__Password environment variable.");
         }
 
-        _logger.LogInformation("Signing in as {Username} at {Url}.",
-            context.Credentials.Username, _application.SignInUrl);
+        if (string.IsNullOrWhiteSpace(entryPoint))
+        {
+            throw new AuthenticationFailedException(
+                "Nowhere to sign in: no startUrl was supplied and Application:SignInUrl is not configured.");
+        }
 
-        _driver.Navigate().GoToUrl(_application.SignInUrl);
+        // Checked up front, because the alternative is silent. With no markers the flow can never
+        // recognise that it has arrived, so a perfectly good sign-in would end in a login timeout that
+        // blames the credentials.
+        if (!_application.AuthenticatedUrlMarkers.Any(marker => !string.IsNullOrWhiteSpace(marker)))
+        {
+            throw new AuthenticationFailedException(
+                "Application:AuthenticatedUrlMarkers is empty, so sign-in could never be detected as " +
+                "complete. List the URL fragments that mean the application is signed in.");
+        }
+
+        _logger.LogInformation("Signing in as {Username} at {Url}.",
+            context.Credentials.Username, entryPoint);
+
+        _driver.Navigate().GoToUrl(entryPoint);
 
         RunFlow(context);
 
