@@ -1,0 +1,71 @@
+# The scenarios that sign in to a real tenant.
+#
+# Manual for now, and it will fail until two repository secrets exist:
+#
+#   CREDENTIALS_PASSWORD    the test account's password
+#   CREDENTIALS_TOTP_SECRET the Base32 secret from a verification-code method enrolled for that account
+#
+# The TOTP secret is not optional here, and that is not a policy — it is arithmetic. Without one, Mfa:Mode
+# resolves to Interactive, which pauses and hands a human the browser. There is no human on a runner, so
+# the handler fails fast rather than hanging until the timeout. Enrol the secret and this whole file starts
+# working; until then the honest thing is for it not to run on a schedule and cry wolf every night.
+#
+# Once it is green, uncomment the schedule below to get a nightly signal.
+name: End-to-end
+
+on:
+  workflow_dispatch:
+  # schedule:
+  #   - cron: "0 2 * * *"   # nightly, once this has been green by hand
+
+jobs:
+  e2e:
+    name: End-to-end scenarios
+    # Windows for Edge, which is the configured default browser. A matrix across Chrome and Firefox is the
+    # natural next step — the scenarios never name a browser, so it costs only a strategy block.
+    runs-on: windows-latest
+
+    env:
+      # Environment variables outrank every configuration file, which is exactly what this is for: the
+      # committed config describes a developer's machine, and these three lines describe a runner.
+      Browser__Headless: "true"
+      Mfa__Mode: "Totp"
+      Evidence__Mode: "OnFailure"
+      Credentials__Password: ${{ secrets.CREDENTIALS_PASSWORD }}
+      Credentials__TotpSecret: ${{ secrets.CREDENTIALS_TOTP_SECRET }}
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: "10.0.x"
+
+      - name: Fail early if no account is configured
+        # Without this the suite skips every scenario and reports success — a green tick meaning "nothing
+        # ran" is worse than a red one meaning "this is misconfigured".
+        shell: bash
+        run: |
+          if [ -z "$Credentials__Password" ] || [ -z "$Credentials__TotpSecret" ]; then
+            echo "::error::CREDENTIALS_PASSWORD and CREDENTIALS_TOTP_SECRET must be set for this workflow."
+            exit 1
+          fi
+
+      - name: Build
+        run: dotnet build --configuration Release
+
+      - name: Run end-to-end scenarios
+        run: dotnet test tests/Automation.Specs --configuration Release --no-build --filter "TestCategory=e2e" --logger "trx;LogFileName=e2e.trx"
+
+      - name: Publish the living documentation
+        # Always: the report of a failed run is the reason this job exists. Failure screenshots and DOM
+        # dumps are embedded in it, so this artifact is usually all you need to diagnose an overnight red.
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: living-documentation
+          path: |
+            tests/Automation.Specs/**/LivingDoc/**
+            tests/Automation.Specs/**/TestArtifacts/**
+            **/TestResults/*.trx
+          if-no-files-found: warn

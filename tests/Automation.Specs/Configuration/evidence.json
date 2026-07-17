@@ -1,0 +1,26 @@
+{
+  // What a run records into the living documentation report.
+  "Evidence": {
+    // Off       - nothing is captured, not even on failure.
+    //
+    // OnFailure - only failures: a screenshot and a DOM dump, automatically, with no scenario having to
+    //             remember. Explicit Capture(...) calls are ignored.
+    //
+    // Explicit  - the above, plus whatever a step or page object asks for by name. The report then reads
+    //             as a narrative somebody chose, rather than a contact sheet of every click. This is the
+    //             default: a report worth reading is a report someone curated.
+    //
+    // EveryStep - the above, plus a screenshot after every single step. Nothing is ever missing, which is
+    //             what you want when diagnosing a scenario that fails only on the build agent. The price
+    //             is a large report and roughly a quarter-second per step, so it earns its keep as a
+    //             temporary switch rather than a permanent setting:
+    //                 Evidence__Mode=EveryStep dotnet test --filter "TestCategory=admin"
+    "Mode": "Explicit",
+
+    // Whether a failure also dumps the DOM beside its screenshot, and attaches it.
+    // These answer different questions: the screenshot shows what a person would have seen, the DOM shows
+    // why a locator disagreed. When Microsoft reskins a page, the second one is the one that tells you
+    // what to change — it is how the admin center's real markup was found.
+    "CaptureDomOnFailure": true
+  }
+}

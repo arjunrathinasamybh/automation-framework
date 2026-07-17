@@ -1,0 +1,31 @@
+{
+  "Application": {
+    "BaseUrl": "https://m365.cloud.microsoft/",
+
+    "SignInUrl": "https://m365.cloud.microsoft/?auth=2",
+
+    // Host of the identity provider this application federates to. Entra ID here; a Ping or Okta tenant
+    // would simply be a different value — the framework has no opinion about which.
+    "LoginHost": "login.microsoftonline.com",
+
+    // Every surface a completed sign-in may land on — not just the portal. A scenario can start sign-in
+    // at any of them (see IAuthenticationService.SignIn), and the flow only knows it has arrived when the
+    // URL matches one of these. Omitting a surface means signing in there succeeds and the flow keeps
+    // waiting anyway, until it times out.
+    "AuthenticatedUrlMarkers": [
+      "m365.cloud.microsoft",
+      "admin.cloud.microsoft",
+      "office.com",
+      "microsoft365.com"
+    ],
+
+    "ArtifactsDirectory": "TestArtifacts"
+  },
+
+  // Surfaces belonging to Microsoft 365 specifically, kept out of the "Application" section above because
+  // nothing there names a product. Another application under test brings its own section like this one.
+  "M365": {
+    // Reachable only by an account holding an administrative role.
+    "AdminCenterUrl": "https://admin.cloud.microsoft/"
+  }
+}

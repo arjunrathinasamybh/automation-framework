@@ -1,0 +1,44 @@
+{
+  // How the signed-in session is shared between scenarios.
+  "Session": {
+    // Fresh - every scenario gets a clean, unauthenticated browser and signs in for itself. Complete
+    //         isolation, and the obvious behaviour — but every scenario pays a full Entra sign-in, plus
+    //         an MFA approval each when no TOTP secret is configured. Ten scenarios, ten approvals.
+    //
+    // Reuse - sign in once per run into a persistent browser profile; every later scenario launches
+    //         already authenticated. One sign-in and one MFA approval per run, whatever the scenario
+    //         count. Two things follow from it automatically, because they are requirements rather than
+    //         choices — see SessionProfile for why:
+    //           * the browser runs Normal, not InPrivate (InPrivate discards the profile by design);
+    //           * "Stay signed in?" is answered Yes (the cookie must outlive the browser process).
+    //
+    //         Each scenario still gets its own browser and its own *copy* of that session, so they cannot
+    //         share a profile directory or dirty each other's — see SessionProfile for why copying is the
+    //         design and not caution. A scenario that must start from a clean, unauthenticated browser
+    //         tags itself @fresh-session and always gets one.
+    //
+    //         The trade is server-side state: scenarios share one account, so whatever that account
+    //         accumulates is visible to all of them. The browser state is not shared.
+    //
+    // Fresh until Reuse has completed a live run. The copying is unit-tested, but one question can only be
+    // answered against a real tenant: whether the identity provider accepts a *copied* session for silent
+    // SSO, or refuses it the way it refused the corrupted shared profile this design replaced. Defaulting
+    // to the unproven mode would mean a failure there takes out every scenario at once, and reads as
+    // "we're having trouble verifying your account" rather than as a session bug. Switch it on for a run
+    // -- Session__Mode=Reuse dotnet test --filter "TestCategory=admin|TestCategory=navigation" -- and if
+    // the second scenario signs in without prompting, make it the default here.
+    "Mode": "Fresh",
+
+    // Where the master profile lives, relative to the test output directory. Per-scenario copies go in a
+    // sibling "<ProfileDirectory>.scenarios" and are deleted as each scenario ends. The master holds a
+    // live session for the test account, so treat the directory as a credential — the default keeps it
+    // out of the repository.
+    "ProfileDirectory": "SessionProfile",
+
+    // Discard the profile as each run starts, so a run always begins from one deliberate sign-in.
+    // Set false to carry it between runs: the local edit-run loop then costs no MFA at all, at the price
+    // of a stale profile outliving the change that invalidated it (a password reset, a revoked session),
+    // which surfaces as a puzzling failure rather than a clean sign-in prompt.
+    "ResetOnRunStart": true
+  }
+}

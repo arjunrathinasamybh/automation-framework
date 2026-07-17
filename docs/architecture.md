@@ -22,19 +22,19 @@ called out.
 
 ```mermaid
 flowchart TD
-    subgraph Specs["O365.Automation.Specs — the specification"]
+    subgraph Specs["Automation.Specs — the specification"]
         F[".feature files<br/>Gherkin"]
         S["Step definitions"]
         H["Hooks · DI wiring"]
     end
 
-    subgraph Pages["O365.Automation.Pages — what Microsoft looks like"]
+    subgraph Pages["Automation.Pages — what Microsoft looks like"]
         LH["Login step handlers"]
         LOC["Locators"]
         PO["Page objects<br/>M365HomePage · SidebarComponent"]
     end
 
-    subgraph Core["O365.Automation.Core — how to drive a browser"]
+    subgraph Core["Automation.Core — how to drive a browser"]
         ENG["LoginFlowEngine"]
         DRV["Driver factory + providers"]
         W["WaitService · ElementInteractor"]
@@ -59,10 +59,10 @@ drive a sign-in flow for any identity provider.
 
 | Project | Responsibility | Knows about |
 | --- | --- | --- |
-| `O365.Automation.Core` | Browsers, waits, interactions, the sign-in engine, configuration, diagnostics | Selenium only |
-| `O365.Automation.Pages` | Everything Microsoft-specific: selectors, sign-in screens, M365 pages | Core + Selenium |
-| `O365.Automation.Specs` | The specification: features, steps, hooks | Core + Pages + Reqnroll |
-| `O365.Automation.UnitTests` | Framework internals under test — no browser, no network | Core |
+| `Automation.Core` | Browsers, waits, interactions, the sign-in engine, configuration, diagnostics | Selenium only |
+| `Automation.Pages` | Everything Microsoft-specific: selectors, sign-in screens, M365 pages | Core + Selenium |
+| `Automation.Specs` | The specification: features, steps, hooks | Core + Pages + Reqnroll |
+| `Automation.UnitTests` | Framework internals under test — no browser, no network | Core |
 
 ---
 
@@ -266,10 +266,12 @@ resolved by `FirstDisplayedOrDefault`, which takes the first that matches.
 They target the **accessibility contract** (`role`, `aria-label`, `title`) rather than generated CSS class
 names, because that is what screen readers depend on and is therefore the most stable thing on the page.
 
-When a Microsoft UI change breaks the suite, exactly two files should need editing:
+When a Microsoft UI change breaks the suite, only the locator files should need editing — one per surface:
 
-- [`MicrosoftLoginLocators`](../src/O365.Automation.Pages/Login/MicrosoftLoginLocators.cs)
-- [`SidebarLocators`](../src/O365.Automation.Pages/M365/SidebarLocators.cs)
+- [`MicrosoftLoginLocators`](../src/Automation.Pages/Login/MicrosoftLoginLocators.cs) — Entra ID sign-in
+- [`SidebarLocators`](../src/Automation.Pages/M365/SidebarLocators.cs) — the M365 navigation rail
+- [`AdminCenterLocators`](../src/Automation.Pages/Admin/AdminCenterLocators.cs) — the admin center navigation
+- [`ActiveUsersLocators`](../src/Automation.Pages/Admin/ActiveUsersLocators.cs) — the admin center's Active users list
 
 ---
 
@@ -337,10 +339,36 @@ test's own exception is what matters.
 
 Stated plainly, because a guide that overstates confidence is worse than none.
 
-- **The sidebar locators are unverified.** Nothing has yet run against an authenticated tenant, so
-  [`SidebarLocators`](../src/O365.Automation.Pages/M365/SidebarLocators.cs) is an educated guess — resilient
-  by construction (accessibility attributes, fallback chains), but a guess. The sign-in path *is* verified
-  as far as the credential screen.
+- **Every run needs a human, so there is no end-to-end CI.** With no TOTP secret configured, MFA is
+  interactive *by definition*: the run pauses and hands somebody the browser. There is nobody on a build
+  agent, so [`e2e.yml`](../.github/workflows/e2e.yml) cannot pass — and in `Fresh` mode a local run needs
+  an approval *per scenario*. This is the single largest constraint on the suite: four separate runs have
+  been lost to unanswered MFA prompts, and it is what blocks verifying everything else below. A
+  verification-code method enrolled for the account, with its Base32 secret supplied as
+  `Credentials__TotpSecret`, removes it entirely and is the highest-value thing anyone can do to this
+  repository.
+- **Session reuse has never completed a live run**, and is therefore off. `Session:Mode=Reuse` signs in
+  once and gives each scenario a copy of the resulting profile; the copying is unit-tested, the end-to-end
+  path is not. One question needs a real tenant: whether Entra accepts a *copied* session for silent SSO,
+  or refuses it as it refused the corrupted shared profile this design replaced. If it refuses, the
+  symptom is `"Session information is not sufficient for single-sign-on"` on every scenario at once —
+  which is exactly why the default is the proven mode rather than the promising one.
+- **One unexplained authentication failure.** A scenario once failed with Microsoft's "we're having
+  trouble verifying your account" on a clean InPrivate browser with no profile and no cookies. The
+  poisoned-profile explanation does not cover that case. The likeliest remaining candidate is Entra
+  throttling the account after many rapid sign-ins, which the sequential-execution note below exists to
+  avoid — but it has not been proven, and an unexplained authentication failure is indistinguishable from
+  a real defect at 3am.
+- **Only one business scenario is verified end-to-end.** Active users, in the admin center. Sign-in and
+  the admin navigation are proven; nothing else about the product is. This is a framework with a worked
+  example, not a test suite, and the honest way to grow it is one verified scenario at a time.
+- **The sidebar's item locators are unverified.** The rail's *container* renders, but no run has ever
+  selected an item from it, so the `Item(...)` candidates in
+  [`SidebarLocators`](../src/Automation.Pages/M365/SidebarLocators.cs) remain an educated guess —
+  resilient by construction (accessibility attributes, fallback chains), but a guess. Worth knowing that
+  the equivalent guess for the admin center was *wrong* on first contact: that navigation labels its
+  entries with a `name` attribute and `role="menuitem"`, not the `aria-label` and `role="treeitem"` that
+  seemed the obvious bet. Expect the same of the rail until a run proves otherwise.
 - **Scenarios run sequentially.** Entra ID throttles rapid repeated sign-ins from one account; parallel
   scenarios against a single test account produce authentication failures that look like product bugs.
   Raise parallelism only alongside a pool of distinct test accounts.

@@ -42,7 +42,7 @@ matching driver automatically.
 
 ## Configuration reference
 
-Files live in `tests/O365.Automation.Specs/Configuration/`. All are JSON-with-comments (the .NET JSON
+Files live in `tests/Automation.Specs/Configuration/`. All are JSON-with-comments (the .NET JSON
 configuration provider skips comments).
 
 **Precedence — later wins:**
@@ -307,8 +307,9 @@ Every exception the framework raises deliberately, and what it means.
 | `NotSupportedException`: *"No IBrowserDriverProvider is registered"* | Unknown `Browser:Type`. | Register a provider, or fix the value. |
 | `WebDriverTimeoutException`: *"could not find the …"* wording from `Resolve` | **Microsoft changed their markup.** | Update the candidate locators — see below. |
 
-The last one is the important signal: it names the step and lists every locator tried. **Only two files
-should ever need editing** — `MicrosoftLoginLocators` and `SidebarLocators`.
+The last one is the important signal: it names the step and lists every locator tried. **Only the locator
+files should ever need editing** — `MicrosoftLoginLocators`, `SidebarLocators`, `AdminCenterLocators` and
+`ActiveUsersLocators`.
 
 ---
 
@@ -323,7 +324,7 @@ should ever need editing** — `MicrosoftLoginLocators` and `SidebarLocators`.
 ```bash
 dotnet test --filter "TestCategory=smoke"
 dotnet test --filter "TestCategory=e2e"
-dotnet test tests/O365.Automation.UnitTests
+dotnet test tests/Automation.UnitTests
 ```
 
 Without credentials the `@e2e` scenarios **skip rather than fail**, so a fresh clone stays green.
@@ -343,4 +344,4 @@ like product bugs.
 | `LivingDoc/messages.ndjson` | Raw Cucumber Messages, for other reporters. |
 
 Both are regenerated every run and are git-ignored. Living-doc formatters are configured in
-[`reqnroll.json`](../tests/O365.Automation.Specs/reqnroll.json).
+[`reqnroll.json`](../tests/Automation.Specs/reqnroll.json).
