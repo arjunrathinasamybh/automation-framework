@@ -22,19 +22,19 @@ called out.
 
 ```mermaid
 flowchart TD
-    subgraph Specs["O365.Automation.Specs — the specification"]
+    subgraph Specs["Automation.Specs — the specification"]
         F[".feature files<br/>Gherkin"]
         S["Step definitions"]
         H["Hooks · DI wiring"]
     end
 
-    subgraph Pages["O365.Automation.Pages — what Microsoft looks like"]
+    subgraph Pages["Automation.Pages — what Microsoft looks like"]
         LH["Login step handlers"]
         LOC["Locators"]
         PO["Page objects<br/>M365HomePage · SidebarComponent"]
     end
 
-    subgraph Core["O365.Automation.Core — how to drive a browser"]
+    subgraph Core["Automation.Core — how to drive a browser"]
         ENG["LoginFlowEngine"]
         DRV["Driver factory + providers"]
         W["WaitService · ElementInteractor"]
@@ -59,10 +59,10 @@ drive a sign-in flow for any identity provider.
 
 | Project | Responsibility | Knows about |
 | --- | --- | --- |
-| `O365.Automation.Core` | Browsers, waits, interactions, the sign-in engine, configuration, diagnostics | Selenium only |
-| `O365.Automation.Pages` | Everything Microsoft-specific: selectors, sign-in screens, M365 pages | Core + Selenium |
-| `O365.Automation.Specs` | The specification: features, steps, hooks | Core + Pages + Reqnroll |
-| `O365.Automation.UnitTests` | Framework internals under test — no browser, no network | Core |
+| `Automation.Core` | Browsers, waits, interactions, the sign-in engine, configuration, diagnostics | Selenium only |
+| `Automation.Pages` | Everything Microsoft-specific: selectors, sign-in screens, M365 pages | Core + Selenium |
+| `Automation.Specs` | The specification: features, steps, hooks | Core + Pages + Reqnroll |
+| `Automation.UnitTests` | Framework internals under test — no browser, no network | Core |
 
 ---
 
@@ -268,10 +268,10 @@ names, because that is what screen readers depend on and is therefore the most s
 
 When a Microsoft UI change breaks the suite, only the locator files should need editing — one per surface:
 
-- [`MicrosoftLoginLocators`](../src/O365.Automation.Pages/Login/MicrosoftLoginLocators.cs) — Entra ID sign-in
-- [`SidebarLocators`](../src/O365.Automation.Pages/M365/SidebarLocators.cs) — the M365 navigation rail
-- [`AdminCenterLocators`](../src/O365.Automation.Pages/Admin/AdminCenterLocators.cs) — the admin center navigation
-- [`ActiveUsersLocators`](../src/O365.Automation.Pages/Admin/ActiveUsersLocators.cs) — the admin center's Active users list
+- [`MicrosoftLoginLocators`](../src/Automation.Pages/Login/MicrosoftLoginLocators.cs) — Entra ID sign-in
+- [`SidebarLocators`](../src/Automation.Pages/M365/SidebarLocators.cs) — the M365 navigation rail
+- [`AdminCenterLocators`](../src/Automation.Pages/Admin/AdminCenterLocators.cs) — the admin center navigation
+- [`ActiveUsersLocators`](../src/Automation.Pages/Admin/ActiveUsersLocators.cs) — the admin center's Active users list
 
 ---
 
@@ -342,7 +342,7 @@ Stated plainly, because a guide that overstates confidence is worse than none.
 - **The sidebar's item locators are unverified.** Sign-in and the admin center path have now run
   end-to-end against a live tenant, and the rail's *container* renders — but no run has yet selected an
   item from it, so the `Item(...)` candidates in
-  [`SidebarLocators`](../src/O365.Automation.Pages/M365/SidebarLocators.cs) remain an educated guess:
+  [`SidebarLocators`](../src/Automation.Pages/M365/SidebarLocators.cs) remain an educated guess:
   resilient by construction (accessibility attributes, fallback chains), but a guess. Worth knowing that
   the equivalent guess for the admin center was *wrong* on first contact — that navigation labels its
   entries with a `name` attribute and `role="menuitem"`, not the `aria-label` and `role="treeitem"` that

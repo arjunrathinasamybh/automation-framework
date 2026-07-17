@@ -4,7 +4,7 @@ BDD UI automation for Microsoft 365 — Reqnroll (Gherkin) over Selenium 4 on .N
 (password + TOTP MFA) and drives the Microsoft 365 app launcher, with the browser and privacy mode
 selectable per run.
 
-Behaviour is specified in [feature files](tests/O365.Automation.Specs/Features); every run produces a
+Behaviour is specified in [feature files](tests/Automation.Specs/Features); every run produces a
 **living documentation** report of the scenarios and their outcomes.
 
 📖 **[Architecture](docs/architecture.md)** · **[Technical Reference](docs/technical-reference.md)** ·
@@ -16,13 +16,13 @@ Behaviour is specified in [feature files](tests/O365.Automation.Specs/Features);
 dotnet build
 
 # Needs no credentials.
-dotnet test tests/O365.Automation.UnitTests            # framework unit tests
+dotnet test tests/Automation.UnitTests            # framework unit tests
 dotnet test --filter "TestCategory=smoke"              # a real browser, to the live sign-in page
 ```
 
 ## BDD
 
-Scenarios live in `tests/O365.Automation.Specs/Features/*.feature`:
+Scenarios live in `tests/Automation.Specs/Features/*.feature`:
 
 ```gherkin
 Scenario: An incorrect password is reported, not retried
@@ -36,7 +36,7 @@ Scenario: An incorrect password is reported, not retried
 .NET 8+. Reqnroll is the actively-maintained successor by SpecFlow's original creator, with the same
 Gherkin syntax.
 
-Step definitions ([`Steps/`](tests/O365.Automation.Specs/Steps)) are deliberately thin — they translate a
+Step definitions ([`Steps/`](tests/Automation.Specs/Steps)) are deliberately thin — they translate a
 sentence into a page-object call and assert. No waits, no retries, no selectors. All of that stays behind
 `IAuthenticationService` and the page objects, so the framework remains usable without Reqnroll and the
 specs stay readable by someone who will never open the code.
@@ -45,7 +45,7 @@ specs stay readable by someone who will never open the code.
 `Configuration/browser.json` or from `Browser__Type` / `Browser__Mode` in CI, so one specification
 describes the behaviour on every browser.
 
-Dependency injection is wired in [`ScenarioDependencies`](tests/O365.Automation.Specs/Support/ScenarioDependencies.cs).
+Dependency injection is wired in [`ScenarioDependencies`](tests/Automation.Specs/Support/ScenarioDependencies.cs).
 Reqnroll's container plugin creates a scope per scenario, which is exactly how the framework registers its
 services — `IWebDriver` is scoped, so **one scenario == one browser**, quit automatically when the scenario
 ends. No hook has to remember to close it.
@@ -54,11 +54,11 @@ ends. No hook has to remember to close it.
 
 Reqnroll emits Cucumber Messages as the run proceeds, and the HTML formatter turns them into a
 self-contained report of every scenario and its outcome — readable by a stakeholder who will never open
-the code. Configured in [`reqnroll.json`](tests/O365.Automation.Specs/reqnroll.json).
+the code. Configured in [`reqnroll.json`](tests/Automation.Specs/reqnroll.json).
 
 ```bash
-dotnet test tests/O365.Automation.Specs
-# → tests/O365.Automation.Specs/bin/Debug/net10.0/LivingDoc/living-doc.html
+dotnet test tests/Automation.Specs
+# → tests/Automation.Specs/bin/Debug/net10.0/LivingDoc/living-doc.html
 ```
 
 (SpecFlow+ LivingDoc, the old tool for this, was retired along with SpecFlow. This is its replacement, and
@@ -67,7 +67,7 @@ it needs no licence.)
 To run the end-to-end scenarios, point the suite at a test account (see **Configuration** below):
 
 ```bash
-cd tests/O365.Automation.Specs
+cd tests/Automation.Specs
 copy Configuration\credentials.template.json Configuration\credentials.json   # then set Username
 
 dotnet user-secrets set "Credentials:Password" "<password>"
@@ -90,7 +90,7 @@ dotnet test --filter "TestCategory=e2e&TestCategory!=admin"
 
 ## Configuration
 
-Settings live in `tests/O365.Automation.Specs/Configuration/`, one file per concern — because they have
+Settings live in `tests/Automation.Specs/Configuration/`, one file per concern — because they have
 different lifecycles, and separate files let `.gitignore` draw the line precisely:
 
 | File | Holds | Committed? |
@@ -115,7 +115,7 @@ So the username can sit in `credentials.json` while the password and TOTP secret
 in user-secrets locally, and in the pipeline's secret store as `Credentials__Password` /
 `Credentials__TotpSecret` in CI. **No secret ever needs to exist inside the repository.**
 
-The layering lives in [`AutomationConfigurationBuilder`](src/O365.Automation.Core/Configuration/AutomationConfigurationBuilder.cs),
+The layering lives in [`AutomationConfigurationBuilder`](src/Automation.Core/Configuration/AutomationConfigurationBuilder.cs),
 not in the test project, so a console runner or a future project reuses it unchanged.
 
 ## Choosing a browser
@@ -156,10 +156,10 @@ to persist across runs.
 
 | Project | Contains |
 | --- | --- |
-| `src/O365.Automation.Core` | Browser factory, waits, element interactions, the sign-in engine, diagnostics. Knows nothing about Microsoft's markup — or about Reqnroll. |
-| `src/O365.Automation.Pages` | Everything Microsoft-specific: sign-in step handlers, selectors, M365 page objects. |
-| `tests/O365.Automation.Specs` | The BDD suite: feature files, step definitions, hooks, configuration. |
-| `tests/O365.Automation.UnitTests` | Plain NUnit tests of the framework itself (TOTP, session isolation). No browser, no network. |
+| `src/Automation.Core` | Browser factory, waits, element interactions, the sign-in engine, diagnostics. Knows nothing about Microsoft's markup — or about Reqnroll. |
+| `src/Automation.Pages` | Everything Microsoft-specific: sign-in step handlers, selectors, M365 page objects. |
+| `tests/Automation.Specs` | The BDD suite: feature files, step definitions, hooks, configuration. |
+| `tests/Automation.UnitTests` | Plain NUnit tests of the framework itself (TOTP, session isolation). No browser, no network. |
 
 The unit tests stay NUnit on purpose. They verify framework internals — "a Base32 secret produces a
 six-digit code" — which no stakeholder will ever read, so writing them as Gherkin would be ceremony with

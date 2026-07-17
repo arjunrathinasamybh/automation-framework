@@ -42,7 +42,7 @@ matching driver automatically.
 
 ## Configuration reference
 
-Files live in `tests/O365.Automation.Specs/Configuration/`. All are JSON-with-comments (the .NET JSON
+Files live in `tests/Automation.Specs/Configuration/`. All are JSON-with-comments (the .NET JSON
 configuration provider skips comments).
 
 **Precedence — later wins:**
@@ -324,7 +324,7 @@ files should ever need editing** — `MicrosoftLoginLocators`, `SidebarLocators`
 ```bash
 dotnet test --filter "TestCategory=smoke"
 dotnet test --filter "TestCategory=e2e"
-dotnet test tests/O365.Automation.UnitTests
+dotnet test tests/Automation.UnitTests
 ```
 
 Without credentials the `@e2e` scenarios **skip rather than fail**, so a fresh clone stays green.
@@ -344,4 +344,4 @@ like product bugs.
 | `LivingDoc/messages.ndjson` | Raw Cucumber Messages, for other reporters. |
 
 Both are regenerated every run and are git-ignored. Living-doc formatters are configured in
-[`reqnroll.json`](../tests/O365.Automation.Specs/reqnroll.json).
+[`reqnroll.json`](../tests/Automation.Specs/reqnroll.json).

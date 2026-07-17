@@ -25,7 +25,7 @@ by Selenium Manager — do not download chromedriver.
 ```bash
 git clone <repo> && cd Office365Automation
 dotnet build
-dotnet test tests/O365.Automation.UnitTests     # should pass immediately, no setup
+dotnet test tests/Automation.UnitTests     # should pass immediately, no setup
 ```
 
 ### Point it at a test account
@@ -33,7 +33,7 @@ dotnet test tests/O365.Automation.UnitTests     # should pass immediately, no se
 Only needed for the `@e2e` scenarios. Without this they **skip**, and the build stays green.
 
 ```bash
-cd tests/O365.Automation.Specs
+cd tests/Automation.Specs
 copy Configuration\credentials.template.json Configuration\credentials.json
 ```
 
@@ -73,7 +73,7 @@ continues by itself. Only unattended/CI runs actually need the secret.
 
 ```bash
 # No credentials needed
-dotnet test tests/O365.Automation.UnitTests        # framework internals, ~150ms
+dotnet test tests/Automation.UnitTests        # framework internals, ~150ms
 dotnet test --filter "TestCategory=smoke"          # real browser → live sign-in page
 
 # Credentials needed (skips cleanly without them)
@@ -104,7 +104,7 @@ Any config key works this way — `__` separates sections.
 
 ## Writing a scenario
 
-Features live in `tests/O365.Automation.Specs/Features/`.
+Features live in `tests/Automation.Specs/Features/`.
 
 ```gherkin
 @navigation
@@ -267,10 +267,10 @@ Tried: By.Id: i0118 | By.CssSelector: input[name='passwd'] | By.CssSelector: inp
 
 **Only the locator files should ever need editing — one per surface:**
 
-- `src/O365.Automation.Pages/Login/MicrosoftLoginLocators.cs`
-- `src/O365.Automation.Pages/M365/SidebarLocators.cs`
-- `src/O365.Automation.Pages/Admin/AdminCenterLocators.cs`
-- `src/O365.Automation.Pages/Admin/ActiveUsersLocators.cs`
+- `src/Automation.Pages/Login/MicrosoftLoginLocators.cs`
+- `src/Automation.Pages/M365/SidebarLocators.cs`
+- `src/Automation.Pages/Admin/AdminCenterLocators.cs`
+- `src/Automation.Pages/Admin/ActiveUsersLocators.cs`
 
 Open the DOM dump in `TestArtifacts/`, find the new markup, and **add** a locator to the front of the list —
 don't replace the old ones unless you are certain they're dead. Locators are ordered lists precisely so
