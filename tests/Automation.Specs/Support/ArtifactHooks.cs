@@ -5,8 +5,8 @@ using Reqnroll;
 namespace Automation.Specs.Support;
 
 /// <summary>
-/// Captures a screenshot and a DOM dump whenever a scenario fails. Wired here rather than left to
-/// individual steps, because a failed UI scenario with no evidence is close to undebuggable.
+/// Captures evidence whenever a scenario fails. Wired here rather than left to individual steps, because a
+/// failed UI scenario with no evidence is close to undebuggable.
 /// </summary>
 [Binding]
 public sealed class ArtifactHooks
@@ -27,16 +27,17 @@ public sealed class ArtifactHooks
     {
         if (_scenario.TestError is null || !_session.DriverLaunched)
         {
-            // Nothing failed, or nothing was ever opened. Resolving the collector when no browser was
+            // Nothing failed, or nothing was ever opened. Resolving the recorder when no browser was
             // launched would start one during teardown just to photograph a blank page.
             return;
         }
 
         // Resolved lazily, and only now: see above.
-        var artifacts = (IArtifactCollector)_services.GetService(typeof(IArtifactCollector))!;
-        var name = _scenario.ScenarioInfo.Title;
+        var evidence = (IEvidenceRecorder)_services.GetService(typeof(IEvidenceRecorder))!;
 
-        artifacts.CaptureScreenshot(name);
-        artifacts.CapturePageSource(name);
+        // Through the recorder rather than the collector, so the screenshot and DOM dump are attached to
+        // the report instead of only written to disk. Evidence nobody can find from the report is evidence
+        // somebody has to go digging for.
+        evidence.CaptureFailure(_scenario.ScenarioInfo.Title);
     }
 }

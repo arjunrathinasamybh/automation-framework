@@ -2,6 +2,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Automation.Core.Configuration;
 using Automation.Core.DependencyInjection;
+using Automation.Core.Diagnostics;
 using Automation.Pages.DependencyInjection;
 using Reqnroll.Microsoft.Extensions.DependencyInjection;
 
@@ -37,6 +38,10 @@ public static class ScenarioDependencies
             // feature file.
             .AddEntraIdAuthentication()
             .AddO365Pages(configuration);
+
+        // Replaces the core's no-op sink: here there *is* a report to publish evidence to. Registered
+        // after AddAutomationCore so this wins — last registration of an interface is what resolves.
+        services.AddScoped<IEvidenceSink, ReqnrollEvidenceSink>();
 
         // Shared between the steps of a single scenario.
         services.AddScoped<ScenarioState>();

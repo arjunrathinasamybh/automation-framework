@@ -33,6 +33,7 @@ public static class AutomationConfigurationBuilder
         AddFile(builder, "timeouts.json", optional: false);
         AddFile(builder, "mfa.json", optional: false);
         AddFile(builder, "session.json", optional: false);
+        AddFile(builder, "evidence.json", optional: false);
 
         // Git-ignored. Holds the username; the password and TOTP secret may be put here for local
         // convenience, but user-secrets or environment variables are the safer home for them.

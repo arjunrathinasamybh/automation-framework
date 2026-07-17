@@ -12,24 +12,19 @@
     //           * the browser runs Normal, not InPrivate (InPrivate discards the profile by design);
     //           * "Stay signed in?" is answered Yes (the cookie must outlive the browser process).
     //
-    //         The trade is isolation: scenarios inherit whatever the shared profile holds — cookies, and
-    //         any server-side state their account accumulated. A scenario that must start from a clean,
-    //         unauthenticated browser tags itself @fresh-session and always gets one.
+    //         Each scenario still gets its own browser and its own *copy* of that session, so they cannot
+    //         share a profile directory or dirty each other's — see SessionProfile for why copying is the
+    //         design and not caution. A scenario that must start from a clean, unauthenticated browser
+    //         tags itself @fresh-session and always gets one.
     //
-    // KNOWN BROKEN — do not set to Reuse yet. Verified against a live tenant on 2026-07-17: the sign-in
-    // persists correctly (the profile does receive ESTSAUTHPERSISTENT), but the *second* scenario's
-    // browser dies with "invalid session id ... not connected to DevTools" — a second Chromium process
-    // reaching a --user-data-dir the previous one has not finished releasing. That death half-writes the
-    // profile, and every scenario after it launches holding cookies, so Microsoft 365 attempts a silent
-    // SSO instead of an interactive sign-in and Entra refuses it:
-    //     error_description: "Session information is not sufficient for single-sign-on."
-    // which the app renders as "Sorry, we're having trouble verifying your account."
-    // Sharing one profile between consecutive browser *processes* is the flawed premise; see the Known
-    // limits section of docs/architecture.md.
-    "Mode": "Fresh",
+    //         The trade is server-side state: scenarios share one account, so whatever that account
+    //         accumulates is visible to all of them. The browser state is not shared.
+    "Mode": "Reuse",
 
-    // Where the reused profile lives, relative to the test output directory. It holds a live session for
-    // the test account, so treat the directory as a credential — the default keeps it out of the repo.
+    // Where the master profile lives, relative to the test output directory. Per-scenario copies go in a
+    // sibling "<ProfileDirectory>.scenarios" and are deleted as each scenario ends. The master holds a
+    // live session for the test account, so treat the directory as a credential — the default keeps it
+    // out of the repository.
     "ProfileDirectory": "SessionProfile",
 
     // Discard the profile as each run starts, so a run always begins from one deliberate sign-in.

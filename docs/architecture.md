@@ -339,6 +339,20 @@ test's own exception is what matters.
 
 Stated plainly, because a guide that overstates confidence is worse than none.
 
+- **Session reuse has never completed a live run.** `Session:Mode=Reuse` signs in once per run and gives
+  each scenario a copy of the resulting profile. The copying is unit-tested; the end-to-end path is not.
+  Three attempts to verify it against the tenant were lost at the MFA prompt — the run reached "approve
+  number 18", waited five minutes, and failed — so what remains unknown is the one thing only a live run
+  can answer: whether Entra accepts a *copied* session for silent SSO, or refuses it the way it refused
+  the corrupted shared profile that this design replaced. If it refuses, the symptom is
+  `"Session information is not sufficient for single-sign-on"` on every scenario, and the fallback is one
+  value: `Session__Mode=Fresh`.
+- **Every run needs a human.** With no TOTP secret configured, MFA is interactive by definition, so an
+  unattended run cannot sign in at all — and, in `Fresh` mode, needs an approval *per scenario*. This is
+  the single largest constraint on the suite today: it is why the three runs above were lost, and why
+  there is no CI. A verification-code method enrolled in Entra, with its Base32 secret in user-secrets,
+  removes it entirely.
+
 - **The sidebar's item locators are unverified.** Sign-in and the admin center path have now run
   end-to-end against a live tenant, and the rail's *container* renders — but no run has yet selected an
   item from it, so the `Item(...)` candidates in

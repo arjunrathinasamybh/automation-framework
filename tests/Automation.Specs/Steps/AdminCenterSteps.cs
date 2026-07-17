@@ -1,5 +1,6 @@
 using NUnit.Framework;
 using Automation.Core.Authentication;
+using Automation.Core.Diagnostics;
 using Automation.Pages.Admin;
 using Automation.Specs.Support;
 using Reqnroll;
@@ -13,17 +14,20 @@ public sealed class AdminCenterSteps
     private readonly AdminCenterPage _adminCenter;
     private readonly ActiveUsersPage _activeUsers;
     private readonly TestAccount _account;
+    private readonly IEvidenceRecorder _evidence;
 
     public AdminCenterSteps(
         IAuthenticationService authentication,
         AdminCenterPage adminCenter,
         ActiveUsersPage activeUsers,
-        TestAccount account)
+        TestAccount account,
+        IEvidenceRecorder evidence)
     {
         _authentication = authentication;
         _adminCenter = adminCenter;
         _activeUsers = activeUsers;
         _account = account;
+        _evidence = evidence;
     }
 
     /// <summary>
@@ -37,6 +41,8 @@ public sealed class AdminCenterSteps
 
         _authentication.SignIn(startUrl: _adminCenter.Url);
         _adminCenter.WaitUntilLoaded();
+
+        _evidence.Capture("Signed in to the admin center");
     }
 
     [When("I open the Microsoft 365 admin center")]
@@ -56,6 +62,9 @@ public sealed class AdminCenterSteps
     {
         _activeUsers.WaitUntilLoaded();
         Assert.That(_activeUsers.IsDisplayed, Is.True, "Expected the Active users list.");
+
+        // Captured after the assertion, not before: the point is to show the state that satisfied it.
+        _evidence.Capture("Active users list");
     }
 
     [Then("the active users list has at least one user")]

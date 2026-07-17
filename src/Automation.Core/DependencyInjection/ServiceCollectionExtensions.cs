@@ -30,6 +30,7 @@ public static class ServiceCollectionExtensions
         services.Configure<ApplicationSettings>(configuration.GetSection(ApplicationSettings.SectionName));
         services.Configure<MfaSettings>(configuration.GetSection(MfaSettings.SectionName));
         services.Configure<SessionSettings>(configuration.GetSection(SessionSettings.SectionName));
+        services.Configure<EvidenceSettings>(configuration.GetSection(EvidenceSettings.SectionName));
 
         // One provider per browser. The factory picks between them; nothing else needs to know they exist.
         services.AddSingleton<IBrowserDriverProvider, ChromeDriverProvider>();
@@ -56,6 +57,12 @@ public static class ServiceCollectionExtensions
         services.AddScoped<IWaitService, WaitService>();
         services.AddScoped<IElementInteractor, ElementInteractor>();
         services.AddScoped<IArtifactCollector, ArtifactCollector>();
+
+        // The no-op sink is the default so IEvidenceRecorder always resolves: a page object asking for
+        // evidence should not need to know whether a report is listening. A host with somewhere to publish
+        // to — the specs project publishes to the living documentation — replaces this registration.
+        services.AddScoped<IEvidenceSink, NullEvidenceSink>();
+        services.AddScoped<IEvidenceRecorder, EvidenceRecorder>();
         services.AddScoped<IAuthenticationService, LoginFlowEngine>();
         services.AddSingleton<ITotpProvider, TotpProvider>();
 
